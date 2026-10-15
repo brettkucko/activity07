@@ -88,3 +88,22 @@ def health():
         return JSONResponse(
             {"error": type(e).__name__, "detail": str(e)}, status_code=500
         )
+
+@app.get("/debug-uri")
+def debug_uri():
+    uri = MONGODB_URI or ""
+    try:
+        from urllib.parse import urlparse, unquote
+        p = urlparse(uri)
+        return {
+            "scheme": p.scheme,
+            "username": unquote(p.username or ""),
+            "password_length": len(unquote(p.password or "")),
+            "host": p.hostname,
+            "has_angle_brackets": "<" in uri or ">" in uri,
+            "has_whitespace": uri != uri.strip() or " " in uri,
+            "has_quotes": '"' in uri or "'" in uri,
+            "starts_with": uri[:14],
+        }
+    except Exception as e:
+        return {"parse_error": str(e)}
